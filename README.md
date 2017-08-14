@@ -1,4 +1,4 @@
 Docker Oracle Java
 =========
 
-This is a Dockerfile for starting a CentOS container with [Java](https://www.java.com/en/) `8u31` installed. 
+This is a Dockerfile for starting a CentOS container with [Java](https://www.java.com/en/) `8u144` installed. 
