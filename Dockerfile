@@ -1,28 +1,26 @@
-# java
-#
-# VERSION       Java 8
-
-# use the centos base image provided by dotCloud
+# Oracle Java Server JRE on CentOS
 FROM centos:7
-MAINTAINER Marco Palladino, marco@mashape.com
+LABEL AUTHOR "Tony Apuzzo <tony.apuzzo@fdiinc.com>"
+LABEL SOURCE "https://github.com/fdiinc/docker-centos7-oracle-jdk8"
 
-ENV JAVA_VERSION=8u144
-ENV BUILD_VERSION=b01
-ENV UUID=090f390dda5b47b9b721c7dfaa008135
+# These change quarterly when Oracle releases new Java Versions
+ARG JAVA_VERSION=8u191
+ARG BUILD_VERSION=b12
+ARG UUID=2787e4a523244c269598db4e85c51e0c
+ARG TARGET=server-jre-${JAVA_VERSION}-linux-x64.tar.gz
 
-# Upgrading system
-RUN yum -y upgrade
-RUN yum -y install wget
+# Default Java Home
+ENV JAVA_HOME /usr/java/default
 
-# Downloading Java
-RUN wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/$JAVA_VERSION-$BUILD_VERSION/$UUID/jdk-$JAVA_VERSION-linux-x64.rpm" -O /tmp/jdk-8-linux-x64.rpm
-
-RUN yum -y install /tmp/jdk-8-linux-x64.rpm
-
-RUN alternatives --install /usr/bin/java jar /usr/java/latest/bin/java 200000
-RUN alternatives --install /usr/bin/javaws javaws /usr/java/latest/bin/javaws 200000
-RUN alternatives --install /usr/bin/javac javac /usr/java/latest/bin/javac 200000
-
-ENV JAVA_HOME /usr/java/latest
-
-
+# Download and Install Java
+RUN curl -L -b "oraclelicense=accept-securebackup-cookie" \
+    "http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION}-${BUILD_VERSION}/${UUID}/${TARGET}" \
+    -o "/tmp/${TARGET}" \
+ && mkdir -p /usr/java \
+ && tar x --auto-compress --file="/tmp/${TARGET}" --no-same-owner --directory=/usr/java --exclude='man/*' \
+ && ln -s /usr/java/$(tar taf "/tmp/${TARGET}" | head -1) /usr/java/latest \
+ && ln -s /usr/java/latest "${JAVA_HOME}" \
+ && alternatives --install /usr/bin/java java "${JAVA_HOME}/bin/java" 20000 \
+ && alternatives --install /usr/bin/javac javac "${JAVA_HOME}/bin/javac" 20000 \
+ && alternatives --install /usr/bin/jar jar "${JAVA_HOME}/bin/jar" 20000 \
+ && rm "/tmp/${TARGET}"
